@@ -1,42 +1,58 @@
-import os
+import allure
+import allure_commons
 import pytest
-from appium.options.android import UiAutomator2Options
-from dotenv import load_dotenv
+from _pytest.nodes import Item
+from _pytest.runner import CallInfo
+from selene.support.shared import browser
+from selene import support
 from appium import webdriver
 
-from selene.support.shared import browser
+import config
+from qa_guru_mobile_1 import utils
 
-from qa_guru_mobile_1.utils import attachments
 
-
-@pytest.fixture(scope='session', autouse=True)
-def driver_management():
-    load_dotenv()
-
-    options = UiAutomator2Options().load_capabilities({
-        "app": os.getenv("app"),
-        "deviceName": "Google Pixel 3",
-        "platformVersion": "9.0",
-        "project": "Python project",
-        "build": "wikipedia-build-qa_guru",
-        'bstack:options': {
-            "projectName": "Wikipedia project",
-            "buildName": "wikipedia-build-01",
-            "sessionName": "BStack first_test",
-            "userName": os.getenv('user_name'),
-            "accessKey": os.getenv('access_key'),
-        }
-    })
-    browser.config.driver = webdriver.Remote(
-        command_executor="http://hub.browserstack.com/wd/hub",
-        options=options
+@pytest.fixture(scope='function', autouse=True)
+def driver_management(request):
+    browser.config.timeout = config.settings.timeout
+    browser.config._wait_decorator = support._logging.wait_with(
+        context=allure_commons._allure.StepContext
     )
-    browser.config.timeout = 6
-    yield driver_management
-    attachments.add_video(browser)
-    browser.quit()
+
+    with allure.step('set up app session'):
+        browser.config.driver = webdriver.Remote(
+            config.settings.remote_url, options=config.settings.driver_options
+        )
+
+    yield
+
+    # given we want to save disk space
+    # then we store screenshots and xml dumps only for failed tests
+    if config.settings.run_on_browserstack and request.node.result_of_call.failed:
+        '''
+        request.node is an "item" because we use the default "function" scope
+        '''
+        utils.allure.attachments.screenshot(name='Last screenshot')
+        utils.allure.attachments.screen_xml_dump()
+
+    session_id = browser.driver.session_id
+
+    allure.step('close app session')(browser.quit)()
+
+    if config.settings.run_on_browserstack:
+        utils.allure.attachments.video_from_browserstack(session_id)
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item: Item, call: CallInfo):  # noqa
+    # execute all other hooks to obtain the report object
+    outcome = yield
+    result_of_ = outcome.get_result()
+
+    # set a report attribute for each phase of a call, which can
+    # be "setup", "call", "teardown"
+    setattr(item, 'result_of_' + result_of_.when, result_of_)
 
 
 @pytest.fixture(scope='session', autouse=True)
 def patch_selene():
-    import qa_guru_mobile_1.extensions.selene.patch_selector  # noqa
+    import qa_guru_mobile_1.utils.selene.patch_selector  # noqa
