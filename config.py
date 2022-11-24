@@ -17,7 +17,7 @@ class Settings(pydantic.BaseSettings):
     app: Optional[str] = None
     appName: Optional[str] = None
     appWaitActivity: Optional[str] = None
-    newCommandTimeout: Optional[int] = 60
+    newCommandTimeout: Optional[int] = 100
 
     # --- BrowserStack Capabilities ---
     projectName: Optional[str] = None
@@ -32,7 +32,7 @@ class Settings(pydantic.BaseSettings):
     remote_url: str = 'http://127.0.0.1:4723/wd/hub'  # it's a default appium server url using localhost
 
     # --- Selene ---
-    timeout: float = 6.0
+    timeout: float = 10.0
 
     @property
     def run_on_browserstack(self):
@@ -47,7 +47,7 @@ class Settings(pydantic.BaseSettings):
             options.platform_name = self.platformName
         options.app = (
             utils.file.abs_path_from_project(self.app)
-            if self.app.startswith('./') or self.app.startswith('../')
+            if self.app and (self.app.startswith('./') or self.app.startswith('../'))
             else self.app
         )
         options.new_command_timeout = self.newCommandTimeout
@@ -83,4 +83,3 @@ class Settings(pydantic.BaseSettings):
 
 
 settings = Settings.in_context()
-print(settings)
