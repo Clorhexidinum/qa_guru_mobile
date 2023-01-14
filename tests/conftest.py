@@ -8,7 +8,7 @@ from selene import support
 from appium import webdriver
 
 import config
-from qa_guru_mobile_1 import utils
+from qa_guru_mobile import utils
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -55,4 +55,4 @@ def pytest_runtest_makereport(item: Item, call: CallInfo):  # noqa
 
 @pytest.fixture(scope='session', autouse=True)
 def patch_selene():
-    import qa_guru_mobile_1.utils.selene.patch_selector  # noqa
+    import qa_guru_mobile.utils.selene.patch_selector  # noqa

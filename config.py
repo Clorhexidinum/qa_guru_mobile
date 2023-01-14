@@ -2,7 +2,7 @@ import pydantic
 from appium.options.android import UiAutomator2Options
 from typing import Literal, Optional
 
-from qa_guru_mobile_1 import utils
+from qa_guru_mobile import utils
 
 EnvContext = Literal['browserstack', 'emulation']
 

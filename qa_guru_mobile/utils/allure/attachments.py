@@ -1,7 +1,7 @@
 import allure
 from selene.support.shared import browser
 
-from qa_guru_mobile_1 import utils
+from qa_guru_mobile import utils
 
 
 def screenshot(*, name='screenshot'):

@@ -4,7 +4,7 @@ from allure import step
 
 import config
 
-from qa_guru_mobile_1.model import app
+from qa_guru_mobile.model import app
 
 
 def test_search():
