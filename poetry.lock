@@ -5,7 +5,7 @@ description = "Allure pytest integration"
 category = "main"
 optional = false
 python-versions = "*"
-.
+
 [package.dependencies]
 allure-python-commons = "2.11.1"
 pytest = ">=4.5.0"
